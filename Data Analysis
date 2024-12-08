@@ -1,0 +1,32 @@
+Feature Engineering: 3.Sentiment Score & Lagged Features We’ll aggregate sentiment scores for each day and create lagged features to help with stock price prediction.
+# Create sentiment score (positive=1, negative=-1, neutral=0)
+def sentiment_score(sentiment):
+    if sentiment == 'positive':
+        return 1
+    elif sentiment == 'negative':
+        return -1
+    else:
+        return 0
+
+tweets['sentiment_score'] = tweets['sentiment'].apply(sentiment_score)
+
+# Group by date and calculate the daily sentiment score
+tweets['date'] = tweets['created_at'].dt.date
+daily_sentiment = tweets.groupby('date')['sentiment_score'].sum().reset_index()
+
+# Merge the sentiment data with the stock price data
+stock_data['Date'] = stock_data.index.date
+stock_data = pd.merge(stock_data, daily_sentiment, how='left', left_on='Date', right_on='date')
+
+# Fill missing sentiment scores with 0 (no sentiment for that day)
+stock_data['sentiment_score'].fillna(0, inplace=True)
+
+# Create lagged sentiment features
+stock_data['sentiment_score_lag1'] = stock_data['sentiment_score'].shift(1)
+stock_data['sentiment_score_lag2'] = stock_data['sentiment_score'].shift(2)
+
+# Drop the date column as it's not needed anymore
+stock_data.drop(['date'], axis=1, inplace=True)
+
+# Display the data
+print(stock_data.tail())
