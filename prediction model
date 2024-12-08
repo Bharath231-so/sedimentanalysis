@@ -1,0 +1,37 @@
+4.Stock Price Prediction Model (Classification) Now, we will use machine learning (Random Forest in this case) to predict the stock price movement (up or down) based on sentiment and other features.
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+# Calculate the daily stock price change
+stock_data['price_change'] = stock_data['Close'].pct_change()
+
+# Create the target variable (1 for price increase, 0 for price decrease)
+stock_data['target'] = np.where(stock_data['price_change'] > 0, 1, 0)
+
+# Drop missing values
+stock_data.dropna(subset=['sentiment_score_lag1', 'sentiment_score_lag2', 'target'], inplace=True)
+
+# Features and target variable
+X = stock_data[['sentiment_score_lag1', 'sentiment_score_lag2']]
+y = stock_data['target']
+
+# Split data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train a Random Forest classifier
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+print(classification_report(y_test, y_pred))
+
+5.Evaluation Finally, we evaluate the model’s performance using accuracy and classification metrics (precision, recall, F1-score). If the model is successful, you can use it to make real-time predictions based on new social media data.
+
+6.Additional Considerations: Real-time prediction: For real-time prediction, you could set up a system to fetch new tweets and stock data periodically (e.g., every day) and run predictions. Advanced models: You can use more advanced models (e.g., LSTM or XGBoost) for better performance, especially for time-series forecasting. Conclusion: This code is a basic implementation of stock movement analysis based on social media sentiment. You can extend it by incorporating more features (such as volume of mentions), using different machine learning models, and refining sentiment analysis. Also, you can backtest this system to validate its predictions and profitability.
+
