@@ -1,0 +1,115 @@
+We'll use the following libraries:
+
+Tweepy for Twitter API integration. TextBlob for sentiment analysis. yfinance for retrieving historical stock prices. pandas and numpy for data manipulation. sklearn for machine learning models and evaluation. Prerequisites: Install required libraries:
+pip install tweepy textblob  yfinance pandas numpy scikit-learn
+
+import tweepy
+import yfinance as yf
+import pandas as pd
+from textblob import TextBlob
+import numpy as np
+import datetime
+
+# Twitter API credentials (replace with your own)
+API_KEY = 'p8J9oJWQUzhbfpTGdXSoFc4oD'
+API_SECRET_KEY = 'n8mA7NCRLapaN4LBc7eNQaHVDuCqSvAef6qAUa2lndT8unEK17'
+ACCESS_TOKEN = '1864913576529375232-jREMGxf5sgxp4hH1KccHEkadySZHl1'
+ACCESS_TOKEN_SECRET = 'TyUMQkB74EO8rkmukwnwch50alSEiPMXxmVjGwxHGcKpU'
+
+# Set up the Twitter API client
+auth = tweepy.OAuthHandler(API_KEY, API_SECRET_KEY)
+auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+api = tweepy.API(auth)
+
+def fetch_tweets(query, count=100):
+    # Fetch tweets based on the query (stock symbol or company name)
+    tweets = tweepy.Cursor(api.search_tweets, q=query, lang="en", tweet_mode="extended").items(count)
+    tweet_data = []
+
+    for tweet in tweets:
+        tweet_data.append({'text': tweet.full_text, 'created_at': tweet.created_at})
+
+    return pd.DataFrame(tweet_data)
+
+# Fetch stock price data from Yahoo Finance
+def fetch_stock_data(stock_symbol, start_date, end_date):
+    stock_data = yf.download(stock_symbol, start=start_date, end=end_date)
+    return stock_data
+
+# Example usage
+stock_symbol = 'AAPL'
+tweets = fetch_tweets(stock_symbol, count=200)  # Fetch 200 recent tweets
+stock_data = fetch_stock_data(stock_symbol, '2023-01-01', '2023-11-01')  # Historical stock data
+
+# Display the data
+print(tweets.head())
+print(stock_data.head())
+
+#Sentiment analysis function
+def analyze_sentiment(text):
+    analysis = TextBlob(text)
+    # Return polarity score: positive (>0), negative (<0), or neutral (==0)
+    if analysis.sentiment.polarity > 0:
+        return 'positive'
+    elif analysis.sentiment.polarity < 0:
+        return 'negative'
+    else:
+        return 'neutral'
+
+# Apply sentiment analysis on the tweets DataFrame
+tweets['sentiment'] = tweets['text'].apply(analyze_sentiment)
+
+# Count the number of positive, negative, and neutral sentiments
+sentiment_counts = tweets['sentiment'].value_counts()
+print(sentiment_counts)
+
+# Create sentiment score (positive=1, negative=-1, neutral=0)
+def sentiment_score(sentiment):
+    if sentiment == 'positive':
+        return 1
+    elif sentiment == 'negative':
+        return -1
+    else:
+        return 0
+
+tweets['sentiment_score'] = tweets['sentiment'].apply(sentiment_score)
+
+# Group by date and calculate the daily sentiment score
+tweets['date'] = tweets['created_at'].dt.date
+daily_sentiment = tweets.groupby('date')['sentiment_score'].sum().reset_index()
+
+# Merge the sentiment data with the stock price data
+stock_data['Date'] = stock_data.index.date
+
+2.Sentiment Analysis Next, we will analyze the sentiment of each tweet using TextBlob. We'll classify the sentiment as positive, negative, or neutral.
+from IPython import get_ipython
+from IPython.display import display
+from textblob import TextBlob  # Make sure TextBlob is imported here as well
+import pandas as pd
+
+# Get the output of the previous cell (ipython-input-1-2cb3f33fe95c)
+_prev_cell_output = get_ipython().user_ns.get('_', None)
+
+# If the previous output is a DataFrame and likely 'tweets', use it
+if isinstance(_prev_cell_output, pd.DataFrame):
+    tweets = _prev_cell_output
+
+# If 'tweets' is still not found, it may need to be reloaded/recreated
+# Example: tweets = pd.read_csv('tweets.csv')  # If it was saved to a file
+# or tweets = fetch_tweets(stock_symbol, count=200)  # Refetch tweets
+
+# Redefine the analyze_sentiment function in this cell
+def analyze_sentiment(text):
+    analysis = TextBlob(text)
+    # Return polarity score: positive (>0), negative (<0), or neutral (==0)
+    if analysis.sentiment.polarity > 0:
+        return 'positive'
+    elif analysis.sentiment.polarity < 0:
+        return 'negative'
+    else:
+        return 'neutral'
+
+# Now apply the sentiment analysis
+tweets['sentiment'] = tweets['text'].apply(analyze_sentiment)
+
+
